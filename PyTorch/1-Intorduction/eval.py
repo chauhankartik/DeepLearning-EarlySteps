@@ -1,25 +1,26 @@
-import torch
 import config
-import train
-import test
+import torch
+import torch.nn as nn
+import torch.utils.data as data
+import os
+import model
+import pickle
 import data_loader
-from model import NeuralNetwork
 
-#loading data
-train_dataloader = data_loader.train_dataloader
-test_dataloader = data_loader.test_dataloader
+#create data loaders
+train_dataloader = data_loader.train_data_loader()
+test_dataloader = data_loader.test_data_loader()
 
 #loading model
-model = NeuralNetwork()
-model.to(device)
+model.Model.to(config.device)
 
 #define loss and optimizer
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adadelta(model.parameters(), learning_rate = config.learning_rate)
+optimizer = torch.optim.Adadelta(model.Model.parameters(), lr = config.learning_rate)
 
 epoch = config.num_epochs
-for t in range(epochs):
+for t in range(epoch):
 	print(f"Epochs {t+1}\n-----------------")
-	train.train(train_dataloader, model)
-	test.test(test_dataloader, model, criterion)
+	train.train(train_dataloader, model.Model, criterion, optimizer)
+	test.test(test_dataloader, model.Model, criterion)
 print("Done")

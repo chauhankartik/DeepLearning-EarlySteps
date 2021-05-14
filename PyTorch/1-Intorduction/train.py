@@ -4,14 +4,17 @@ import pickle
 import os
 import json
 import torch
+import model
+import torch.utils.data as data
+from torchvision import datasets
+from torchvision.transforms import ToTensor
 import torch.nn as nn
-from torch.utils.data import DataLoader
 
 #internal utilities
 import config
-from model import NeuralNetwork
+from model import NeuralNetwork, newModel
 import data_loader
-from utils import save_checkpoint, compute_batch_metrics
+import test
 
 #hyper-parameter setup
 hyper_params = {
@@ -19,39 +22,34 @@ hyper_params = {
 	"batch_size" : config.batch_size,
 	"learning_rate" : config.learning_rate,
 	"hidden_size" : config.hidden_size,
-	"cuda" : config.cuda,
 	"pretrained" : config.pretrained
 }
 
-# train on GPU if CUDA variable is set to True (a GPU with CUDA is needed to do so)
-device = torch.device("cuda" if hyper_params["cuda"] else "cpu")
-torch.manual_seed(42)
 
 # define a path to save experiment logs
-experiment_path = "output/{}".format(config.exp)
+experiment_path = "./{}".format(config.exp)
 if not os.path.exists(experiment_path):
     os.mkdir(experiment_path)
 
-#loading data
-train_dataloader = data_loader.train_dataloader
-test_dataloader = data_loader.test_dataloader
+#create data loaders
+train_dataloader = data_loader.train_data_loader()
+test_dataloader = data_loader.test_data_loader()
 
-#loading model
-model = NeuralNetwork()
-model.to(device)
+Model = model.newModel()
+Model.to(config.device)
 
 #define loss and optimizer
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adadelta(model.parameters(), learning_rate = config.learning_rate)
+optimizer = torch.optim.Adadelta(Model.parameters(), lr = config.learning_rate)
 
 def train(dataloader, model, loss_fn, optimizer):
 	size = len(dataloader.dataset)
 	for batch, (X, y) in enumerate(dataloader):
-		X, y = X.to(device), y.to(device)
+		X, y = X.to(config.device), y.to(config.device)
 
 		#compute prediction error
 		pred = model(X)
-		loss_fn = loss_fn(pred, y)
+		loss = loss_fn(pred, y)
 
 		#back-prop
 		optimizer.zero_grad()
@@ -62,5 +60,12 @@ def train(dataloader, model, loss_fn, optimizer):
 			loss, current = loss.item(), batch * len(X)
 			print(f"loss :{loss:>7f} [{current:>5d}/{size:>5d}]")
 
+
+epoch = config.num_epochs
+for t in range(epoch):
+	print(f"Epochs {t+1}\n-----------------")
+	train(train_dataloader, Model, criterion, optimizer)
+	test.test(test_dataloader, Model, criterion)
+print("Done")
 
 

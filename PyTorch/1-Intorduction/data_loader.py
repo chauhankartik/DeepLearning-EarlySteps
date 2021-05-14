@@ -7,7 +7,7 @@ from torchvision.transforms import ToTensor
 data_dir = config.data_dir
 
 #downloading training data
-training_data = datasets.CIFAR10(
+training_data = datasets.FashionMNIST(
 	root = data_dir,
 	train = True,
 	download = True,
@@ -15,7 +15,7 @@ training_data = datasets.CIFAR10(
 	)
 
 #downloading test data
-test_data = datasets.CIFAR10(
+test_data = datasets.FashionMNIST(
 	root = data_dir,
 	train = False,
 	download = True,
@@ -23,8 +23,11 @@ test_data = datasets.CIFAR10(
 	)
 
 #create data loaders
-train_data_loader = data.DataLoader(training_data, batch_size = batch_size)
-test_data_loader = data.DataLoader(test_data, batch_size = batch_size)
+def train_data_loader():
+	return data.DataLoader(training_data, batch_size = config.batch_size)
+
+def test_data_loader():
+	return data.DataLoader(test_data, batch_size = config.batch_size)
 
 
 
