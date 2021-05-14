@@ -1,6 +1,10 @@
 #external libraries
 import torch.utils.data as data
+import config
 from torchvision import datasets
+from torchvision.transforms import ToTensor
+
+data_dir = config.data_dir
 
 #downloading training data
 training_data = datasets.CIFAR10(

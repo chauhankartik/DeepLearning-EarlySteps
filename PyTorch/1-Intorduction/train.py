@@ -63,3 +63,4 @@ def train(dataloader, model, loss_fn, optimizer):
 			print(f"loss :{loss:>7f} [{current:>5d}/{size:>5d}]")
 
 
+
