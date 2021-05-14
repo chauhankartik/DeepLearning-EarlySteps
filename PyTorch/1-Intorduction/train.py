@@ -32,12 +32,34 @@ experiment_path = "output/{}".format(config.exp)
 if not os.path.exists(experiment_path):
     os.mkdir(experiment_path)
 
+#loading data
+train_dataloader = data_loader.train_dataloader
+test_dataloader = data_loader.test_dataloader
+
+#loading model
+model = NeuralNetwork()
+model.to(device)
+
+#define loss and optimizer
+criterion = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adadelta(model.parameters(), learning_rate = config.learning_rate)
+
 def train(dataloader, model, loss_fn, optimizer):
 	size = len(dataloader.dataset)
 	for batch, (X, y) in enumerate(dataloader):
-		X, y = X.to("cuda"), y.to("cuda")
+		X, y = X.to(device), y.to(device)
 
 		#compute prediction error
 		pred = model(X)
 		loss_fn = loss_fn(pred, y)
+
+		#back-prop
+		optimizer.zero_grad()
+		loss.backward()
+		optimizer.step()
+
+		if batch % 100 == 0:
+			loss, current = loss.item(), batch * len(X)
+			print(f"loss :{loss:>7f} [{current:>5d}/{size:>5d}]")
+
 
